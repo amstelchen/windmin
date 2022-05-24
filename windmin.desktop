@@ -1,0 +1,16 @@
+[Desktop Entry]
+Version=1.0
+Name=windmin
+GenericName=Yet another GUI for fancontrol
+Type=Application
+Comment=Yet another GUI for fancontrol.
+Comment[ru]=Инструмент системной информации для геймеров, написанная на Python
+Comment[fr]=Un outil d'informations système pour les joueurs écrit en Python
+Comment[de]=Eine andere Oberfläche für fancontrol, geschrieben in Python
+Icon=windmin
+Exec=windmin
+Terminal=false
+StartupNotify=false
+StartupWMClass=windmin
+Categories=System;Settings;
+Keywords=pwmconfig;

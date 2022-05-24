@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Sensors and fans
+GenericName=Yet another GUI for fancontrol.
+Type=Application
+Comment=Yet another GUI for fancontrol, written in Python
+Icon=windmin
+Exec=windmin
+Terminal=false
+StartupNotify=false
+StartupWMClass=windmin
+Categories=System;Settings;
+Keywords=pwmconfig;

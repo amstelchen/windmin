@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Sensoren und Lüfter
+GenericName=Eine andere Oberfläche für fancontrol
+Type=Application
+Comment=Eine andere Oberfläche für fancontrol, geschrieben in Python
+Icon=windmin
+Exec=windmin
+Terminal=false
+StartupNotify=false
+StartupWMClass=windmin
+Categories=System;Settings;
+Keywords=pwmconfig;
