@@ -203,7 +203,7 @@ class MainFrame(wx.Frame):
         self.SetPosition(wx.Point(WinPos))
         self.SetTitle(__appname__)
         _icon = wx.NullIcon
-        _icon.CopyFromBitmap(wx.Bitmap("/home/mic/Projekte/Windmin/windmin.png", wx.BITMAP_TYPE_ANY))
+        _icon.CopyFromBitmap(wx.Bitmap(os.path.join(os.path.dirname(__file__), 'images/windmin.png'), wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
 
         # Menu Bar
@@ -349,7 +349,7 @@ class MainFrame(wx.Frame):
         sizer_8 = wx.BoxSizer(wx.VERTICAL)
         sizer_7.Add(sizer_8, 1, wx.ALL | wx.EXPAND, 30)
 
-        self.bitmap_button_1 = wx.BitmapButton(self.About, wx.ID_ANY, wx.Bitmap("/home/mic/Projekte/Windmin/windmin.png", wx.BITMAP_TYPE_ANY))
+        self.bitmap_button_1 = wx.BitmapButton(self.About, wx.ID_ANY, wx.Bitmap(os.path.join(os.path.dirname(__file__), 'images/windmin.png'), wx.BITMAP_TYPE_ANY))
         self.bitmap_button_1.SetSize(self.bitmap_button_1.GetBestSize())
         sizer_8.Add(self.bitmap_button_1, 0, 0, 15)
 
