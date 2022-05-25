@@ -1,5 +1,6 @@
 import sys
 import wx
+import subprocess
 
 VERSION = "0.1.0"
 __appname__ = "Windmin"
@@ -14,11 +15,13 @@ __licence__ = \
 'Geschrieben von Michael John.'
 
 def PrintAbout() -> str:
+    sensorsVersion = subprocess.run(["sensors", "-v"], capture_output=True, text=True).stdout.replace('version', 'Version: ').replace('with ','\n')
     returnString = (f'\n{__appname__} Version: {__version__}\n'
         f'Python Version: {".".join([str(value) for value in sys.version_info[0:3]])}\n'
         #f'ttkbootstrap Version: {version("ttkbootstrap"):s}\n'
         f'wxWidgets Version: {"3.0.5":s}\n'
         f'wxPython Version: {wx.__version__:s}\n'
+        f'{sensorsVersion}\n'
         f'\n{__copyright__}\n'
         f'\n{__licence__}\n')
     return returnString
