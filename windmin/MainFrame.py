@@ -21,7 +21,7 @@ from .FanCurve import FanCurve
 from .Version import PrintAbout, __appname__, __version__, __author__, __copyright__, __licence__
 # end wxGlade
 
-gettext = gettext.translation('windmin', localedir=os.path.join(os.path.dirname(__file__), 'locales'), languages=['de'])
+gettext = gettext.translation('windmin', localedir=os.path.join(os.path.dirname(__file__), 'locales'))
 gettext.install("windmin")
 _ = gettext.gettext
 

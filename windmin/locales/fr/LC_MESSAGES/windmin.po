@@ -1,0 +1,139 @@
+# French translations for PACKAGE package.
+# Copyright (C) 2022 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Michael John <mic@sundance.local>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-05-25 12:04+0200\n"
+"PO-Revision-Date: 2022-05-25 13:44+0200\n"
+"Last-Translator: Michael John <mic@sundance.local>\n"
+"Language-Team: French <traduc@traduc.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: windmin/MainFrame.py:80
+msgid "Configuration loaded."
+msgstr "Configuration chargée."
+
+#: windmin/MainFrame.py:85
+msgid "Configuration not found, recreating."
+msgstr "Configuration introuvable, recréation."
+
+#: windmin/MainFrame.py:100
+msgid "Configuration saved."
+msgstr "Configuration enregistrée."
+
+#: windmin/MainFrame.py:115
+msgid "Configuration applied."
+msgstr "Configuration appliquée."
+
+#: windmin/MainFrame.py:120
+msgid "Restarting fancontrol service daemon... "
+msgstr "Redémarrage du démon du service fancontrol..."
+
+#: windmin/MainFrame.py:122
+msgid "fancontrol service daemon not up, starting... "
+msgstr "le démon du service fancontrol n'est pas lancé, il démarre..."
+
+#: windmin/MainFrame.py:130
+msgid "done."
+msgstr "terminé."
+
+#: windmin/MainFrame.py:212 windmin/MainFrame.py:236
+msgid "Quit"
+msgstr "Quitter"
+
+#: windmin/MainFrame.py:214
+msgid "File"
+msgstr "Fichier"
+
+#: windmin/MainFrame.py:216 windmin/MainFrame.py:220
+msgid "Help"
+msgstr "Aide"
+
+#: windmin/MainFrame.py:218 windmin/MainFrame.py:234 windmin/MainFrame.py:345
+msgid "About"
+msgstr "À propos"
+
+#: windmin/MainFrame.py:226
+msgid "Apply"
+msgstr "Appliquer"
+
+#: windmin/MainFrame.py:228
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#: windmin/MainFrame.py:231
+msgid "Profile"
+msgstr "Profil"
+
+#: windmin/MainFrame.py:245
+msgid "Sensors"
+msgstr "Capteurs"
+
+#: windmin/MainFrame.py:250
+msgid "Sensor"
+msgstr "Capteur"
+
+#: windmin/MainFrame.py:251
+msgid "Value"
+msgstr "Valeur"
+
+#: windmin/MainFrame.py:258
+msgid "Fans"
+msgstr "Ventilateurs"
+
+#: windmin/MainFrame.py:283
+msgid "Controlled by:"
+msgstr "Contrôlé par:"
+
+#: windmin/MainFrame.py:291
+msgid "Delay in number of cycles:"
+msgstr "Retard du nombre de cycles:"
+
+#: windmin/MainFrame.py:300
+msgid "Turn fan off if temp < MINTEMP"
+msgstr "Éteindre le ventilateur si temp < MINTEMP"
+
+#: windmin/MainFrame.py:303
+msgid "pwm value for fan to start:"
+msgstr "valeur pwm pour le démarrage du ventilateur:"
+
+#: windmin/MainFrame.py:310
+msgid "Profiles"
+msgstr "Profils"
+
+#: windmin/MainFrame.py:317
+msgid "Default Profile"
+msgstr "Profil par défaut"
+
+#: windmin/MainFrame.py:324
+msgid "Apply Profile"
+msgstr "Appliquer le profil"
+
+#: windmin/MainFrame.py:327
+msgid "Create new Profile"
+msgstr "Créer un nouveau profil"
+
+#: windmin/MainFrame.py:330
+msgid "Save Profile"
+msgstr "Enregistrer le profil"
+
+#: windmin/MainFrame.py:333
+msgid "Delete Profile"
+msgstr "Supprimer le profil"
+
+#: windmin/MainFrame.py:337
+msgid "Settings"
+msgstr "Paramètres"
+
+#: windmin/MainFrame.py:363
+msgid "Yet another GUI for fancontrol"
+msgstr "Encore une autre interface graphique pour le contrôle des ventilateurs"
