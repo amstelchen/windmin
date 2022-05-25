@@ -5,6 +5,7 @@
 
 import wx
 import os
+import sys
 import re
 import glob
 import gettext
@@ -230,6 +231,8 @@ class MainFrame(wx.Frame):
         self.frame1_toolbar.AddSeparator()
         tool = self.frame1_toolbar.AddTool(wx.ID_ANY, _("Profile"), wx.ArtProvider.GetBitmap(wx.ART_LIST_VIEW, wx.ART_TOOLBAR, (24, 24)), wx.NullBitmap, wx.ITEM_NORMAL, "", "")
         self.Bind(wx.EVT_TOOL, self.btnProfile_click, id=tool.GetId())
+        tool = self.frame1_toolbar.AddTool(wx.ID_ANY, _("Harddisk"), wx.ArtProvider.GetBitmap(wx.ART_HARDDISK, wx.ART_TOOLBAR, (24, 24)), wx.NullBitmap, wx.ITEM_NORMAL, "", "")
+        self.Bind(wx.EVT_TOOL, self.btnHarddisk_click, id=tool.GetId())
         self.frame1_toolbar.AddSeparator()
         tool = self.frame1_toolbar.AddTool(wx.ID_ANY, _("About"), wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_TOOLBAR, (24, 24)), wx.NullBitmap, wx.ITEM_NORMAL, "", "")
         self.Bind(wx.EVT_TOOL, self.btnAbout_click, id=tool.GetId())
@@ -402,11 +405,11 @@ class MainFrame(wx.Frame):
         # end wxGlade
 
     def btnApply_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        print("Event handler 'btnApply_click' not implemented!")
+        #print("Event handler 'btnApply_click' not implemented!")
         event.Skip()
 
     def btnReset_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        print("Event handler 'btnReset_click' not implemented!")
+        #print("Event handler 'btnReset_click' not implemented!")
 
         #selected_pwm = 
         #print(self.combo_box_1.Value.split(':')[0])
@@ -448,7 +451,7 @@ class MainFrame(wx.Frame):
         event.Skip()
 
     def btnFile_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        print("Event handler 'btnFile_click' not implemented!")
+        #print("Event handler 'btnFile_click' not implemented!")
         event.Skip()
 
     def btnApplyProfile_click(self, event):  # wxGlade: MainFrame.<event_handler>
@@ -473,8 +476,18 @@ class MainFrame(wx.Frame):
         event.Skip()
 
     def btnSaveProfile_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        print("Event handler 'btnSaveProfile_click' not implemented!")
+        #print("Event handler 'btnSaveProfile_click' not implemented!")
         config_save(self.GetPosition())
+        event.Skip()
+
+    def btnHarddisk_click(self, event):  # wxGlade: MainFrame.<event_handler>
+        #print("Event handler 'btnHarddisk_click' not implemented!")
+        try:
+            subprocess.run(["pkexec", "modprobe", "drivetemp"])
+            subprocess.call(["windmin"])
+            quit()
+        except PermissionError:
+            pass
         event.Skip()
 
 # end of class MainFrame
