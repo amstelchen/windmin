@@ -34,7 +34,7 @@ def debug_print(message, prefix="DEBUG: ", end="\n"):
     try:
         if os.environ['DEBUG'] == "1" and DEBUG:
             print(f"{prefix}{message}", end=end, flush=True)
-    except:
+    except KeyError:
         pass
 
 WinPos = (-1, -1)
@@ -73,10 +73,6 @@ def config_load():
             if "Profile" in line:
                 ProfileNum, ProfileName, ProfileContents = re.split('\b\d|=|,',line.strip(), maxsplit=2)
                 Profiles.append((ProfileName, ProfileContents))
-        #print("Category:" + lines[0].split('=')[1].rstrip())
-        #print("WinPosY:" + lines[1].split('=')[1].rstrip())
-        #print("WinPosY:" + lines[2].split('=')[1].rstrip())
-        #Category = lines[0].split('=')[1].rstrip()
         WinPos = wx.Point(int(lines[1].split('=')[1].rstrip()), int(lines[2].split('=')[1].rstrip()))
         debug_print(_("Configuration loaded."))
     else:
@@ -96,8 +92,6 @@ def config_save(WinPos):
     config_file.writelines(lines)
     for index, profile in enumerate(Profiles):
         config_file.writelines("Profile" + str(index) + "=" + ','.join(profile) + "\n")
-    #print(Profiles)
-    #config_file.writelines(str(','.join(Profiles)))
     debug_print(_("Configuration saved."))
 
 def config_apply(ProfileNum):
@@ -107,26 +101,22 @@ def config_apply(ProfileNum):
     if not os.path.exists(config_file):
         print(config_file + " not found.")
         return
-        #os.mkdir(os.path.join(os.path.expanduser("~/.config"),"windmin"))
     try:
         config_file = open(config_file, 'w', newline="\n")
         comment_line= "# This file was created by Windmin" + "\n"
         config_file.writelines(comment_line)
         config_file.writelines(Profiles[ProfileNum] + "\n")
         debug_print(_("Configuration applied."))
-    except PermissionError as e:
+    except PermissionError:
         pass
-        #print(e.errno, e.strerror)
     if checkIfProcessRunning("fancontrol"):
         debug_print(_("Restarting fancontrol service daemon... "), end="")
     else:
         debug_print(_("fancontrol service daemon not up, starting... "), end="")
-    #os.execv("sudo", ("systemctl", "restart", "fancontrol.service"))
     try:
         subprocess.run(["pkexec", "systemctl", "restart", "fancontrol.service"])
     except PermissionError:
         pass
-    #time.sleep(1)
     if checkIfProcessRunning("fancontrol"):
         debug_print(_("done."),prefix="")
 
@@ -174,8 +164,6 @@ class MainFrame(wx.Frame):
 
         pwm_files = []
         for pwm_file in sorted(glob.glob("/sys/class/hwmon/hwmon3/" + 'pwm?')):
-            #debug_print(pwm_file)
-            #pwm_files.append(os.path.basename(pwm_file))
             pwm_files.append(os.path.basename(pwm_file).replace('pwm', 'Fan '))
             with open(pwm_file) as f:
                 contents = f.read()
@@ -184,18 +172,14 @@ class MainFrame(wx.Frame):
         self.temp_files = []
         for temp_file in glob.glob("/sys/class/hwmon/hwmon3/" + 'temp?_label'):
             debug_print(temp_file, end=": ")
-            #temp_files.append(os.path.basename(temp_file))
             with open(temp_file) as f:
                 label = f.read().strip()
-                #temp_files.append(contents)
                 debug_print(label.ljust(22), prefix="", end=": ")
             with open(temp_file.replace('label', 'input')) as f:
                 value = f.read().strip()
                 if int(value) > 0:
                     self.temp_files.append(f"{label}: {int(value) / 1000}°C")
                 debug_print(value, prefix="")
-
-        #all_sensors = hwmon_files + pwm_files
 
         wx.Frame.__init__(self, *args, **kwds)
         self.SetSize(wx.DLG_UNIT(self, wx.Size(250, 300)))
@@ -405,29 +389,18 @@ class MainFrame(wx.Frame):
         # end wxGlade
 
     def btnApply_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        #print("Event handler 'btnApply_click' not implemented!")
         event.Skip()
 
     def btnReset_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        #print("Event handler 'btnReset_click' not implemented!")
-
-        #selected_pwm = 
-        #print(self.combo_box_1.Value.split(':')[0])
-        #print(len(self.temp_files))
-        #selected_temp = self.temp_files.index(self.combo_box_1.Value.split(':')[0])
-        #debug_print(selected_temp)
-
         for i, s in enumerate(self.temp_files):
             if self.combo_box_1.Value.split(':')[0] in s:
               current_temp = self.temp_files[i].split(':')[1].split('.')[0]
 
         self.panelCurve.draw(current_temp)
-        #print(current_temp)
 
         event.Skip()
 
     def btnProfile_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        #print("Event handler 'btnProfile_click' not implemented!")
         self.notebook_1.SetSelection(2)
         event.Skip()
 
@@ -437,12 +410,7 @@ class MainFrame(wx.Frame):
         event.Skip()
 
     def btnAbout_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        #print("Event handler 'btn_About_click' not implemented!")
-        #self.frameAbout = AboutDialog(None, wx.ID_ANY, "")
-        #self.SetTopWindow(self.frameMain)
-        #self.frameAbout.Show()
         self.notebook_1.SetSelection(4)
-        return True
         event.Skip()
 
     def btnQuit_click(self, event):  # wxGlade: MainFrame.<event_handler>
@@ -451,18 +419,14 @@ class MainFrame(wx.Frame):
         event.Skip()
 
     def btnFile_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        #print("Event handler 'btnFile_click' not implemented!")
         event.Skip()
 
     def btnApplyProfile_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        #print("Event handler 'btnApplyProfile_click' not implemented!")
-        #print(Profiles[self.listboxProfiles.GetSelection() - 1])
         config_apply(self.listboxProfiles.GetSelection() - 1)
         event.Skip()
 
     def btnCreateProfile_click(self, event):  # wxGlade: MainFrame.<event_handler>
         global Profiles
-        #print("Event handler 'btnCreateProfile_click' not implemented!")
         ProfileName = ask(message = 'Please name your profile')
         if len(ProfileName) > 0: # and ProfileName.isalnum():
             self.listboxProfiles.Insert(ProfileName, self.listboxProfiles.Count)
@@ -470,18 +434,14 @@ class MainFrame(wx.Frame):
         event.Skip()
 
     def btnDeleteProfile_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        #print("Event handler 'btnDeleteProfile_click' not implemented!")
-        #print(self.listboxProfiles.SelectedItems())
         self.listboxProfiles.Delete(self.listboxProfiles.GetSelection())
         event.Skip()
 
     def btnSaveProfile_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        #print("Event handler 'btnSaveProfile_click' not implemented!")
         config_save(self.GetPosition())
         event.Skip()
 
     def btnHarddisk_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        #print("Event handler 'btnHarddisk_click' not implemented!")
         try:
             subprocess.run(["pkexec", "modprobe", "drivetemp"])
             subprocess.call(["windmin"])
