@@ -145,18 +145,21 @@ class MainFrame(wx.Frame):
                 debug_print(contents, prefix="", end=": ")
                 for hwmon_subfile in sorted(glob.glob("/sys/class/hwmon/" + os.path.basename(hwmon_file) + "/*_input")):
                     with open(hwmon_subfile) as f:
-                        contents_sub = f.read()
-                        if "freq" in hwmon_subfile:
-                            contents_sub = str(int(int(contents_sub) // 1e6)).rjust(4) + " MHz"
-                        if "temp" in hwmon_subfile:
-                            contents_sub = str(int(contents_sub) // 1000).rjust(4) + " °C"
-                        if "fan" in hwmon_subfile and int(contents_sub.strip()) == 0 and contents.strip() == "amdgpu":
-                            contents_sub = contents_sub.rjust(5) + "RPM (not reported)"
-                        elif "fan" in hwmon_subfile:
-                            contents_sub = contents_sub.rjust(5) + "RPM"
-                        if os.path.basename(hwmon_subfile).startswith("in"):
-                            contents_sub = contents_sub.rjust(5) + "mV"
-
+                        try:
+                            contents_sub = f.read()
+                            if "freq" in hwmon_subfile:
+                                contents_sub = str(int(int(contents_sub) // 1e6)).rjust(4) + " MHz"
+                            if "temp" in hwmon_subfile:
+                                contents_sub = str(int(contents_sub) // 1000).rjust(4) + " °C"
+                            if "fan" in hwmon_subfile and int(contents_sub.strip()) == 0 and contents.strip() == "amdgpu":
+                                contents_sub = contents_sub.rjust(5) + "RPM (not reported)"
+                            elif "fan" in hwmon_subfile:
+                                contents_sub = contents_sub.rjust(5) + "RPM"
+                            if os.path.basename(hwmon_subfile).startswith("in"):
+                                contents_sub = contents_sub.rjust(5) + "mV"
+                        except OSError:
+                            # https://github.com/nicolargo/glances/issues/1203
+                            contents_sub = " N/A °C (WiFi disabled)"
                         hwmon_files.append(os.path.basename(hwmon_subfile) + ": " + contents_sub)
                         debug_print(hwmon_subfile + ": " + contents, end="")
             hwmon_files.append("::")
