@@ -26,6 +26,9 @@ gettext = gettext.translation('windmin', localedir=os.path.join(os.path.dirname(
 gettext.install("windmin")
 _ = gettext.gettext
 
+hwmon_files = []
+pwm_files = []
+temp_files = []
 
 DEBUG=True
 
@@ -75,6 +78,7 @@ def config_load():
                 Profiles.append((ProfileName, ProfileContents))
         WinPos = wx.Point(int(lines[1].split('=')[1].rstrip()), int(lines[2].split('=')[1].rstrip()))
         debug_print(_("Configuration loaded."))
+        #print(Profiles)
     else:
         config_desc = open(config_file, 'w', newline="\n")
         lines = ["Category=Length\n", "WinPosX=200\n", "WinPosY=200\n"]
@@ -99,7 +103,7 @@ def config_apply(ProfileNum):
     
     config_file = os.path.expanduser("/etc/fancontrol")
     if not os.path.exists(config_file):
-        print(config_file + " not found.")
+        debug_print(config_file + " not found.")
         return
     try:
         config_file = open(config_file, 'w', newline="\n")
@@ -128,63 +132,74 @@ def ask(parent=None, message='', default_value=''):
     dlg.Destroy()
     return result
 
+def read_hwmon():
+    global hwmon_files, pwm_files, temp_files
+
+    hwmon_files = []
+    for hwmon_file in sorted(glob.glob("/sys/class/hwmon/hwmon?")):
+        debug_print(hwmon_file, end=": ")
+        with open(hwmon_file + "/name") as f:
+            contents = f.read()
+            hwmon_files.append(os.path.basename(hwmon_file) + "/" + contents + "::")
+            debug_print(contents, prefix="", end=": ")
+            for hwmon_subfile in sorted(glob.glob("/sys/class/hwmon/" + os.path.basename(hwmon_file) + "/*_input")):
+                with open(hwmon_subfile) as f:
+                    try:
+                        contents_sub = f.read()
+                        if "freq" in hwmon_subfile:
+                            contents_sub = str(int(int(contents_sub) // 1e6)).rjust(4) + " MHz"
+                        if "temp" in hwmon_subfile:
+                            contents_sub = str(int(contents_sub) // 1000).rjust(4) + " °C"
+                        if "fan" in hwmon_subfile and int(contents_sub.strip()) == 0 and contents.strip() == "amdgpu":
+                            contents_sub = contents_sub.rjust(5) + "RPM (not reported)"
+                        elif "fan" in hwmon_subfile:
+                            contents_sub = contents_sub.rjust(5) + "RPM"
+                        if os.path.basename(hwmon_subfile).startswith("in"):
+                            contents_sub = contents_sub.rjust(5) + "mV"
+                    except OSError:
+                        # https://github.com/nicolargo/glances/issues/1203
+                        contents_sub = " N/A °C (WiFi disabled)"
+                    hwmon_files.append(os.path.basename(hwmon_subfile) + ": " + contents_sub)
+                    debug_print(hwmon_subfile + ": " + contents, end="")
+        hwmon_files.append("::")
+    hwmon_files.pop()
+
+    pwm_files = []
+    for pwm_file in sorted(glob.glob("/sys/class/hwmon/hwmon*/" + 'pwm?')):
+        pwm_files.append(os.path.basename(pwm_file).replace('pwm', 'Fan '))
+        with open(pwm_file) as f:
+            contents = f.read()
+            debug_print(pwm_file + ": " + contents, end="")
+
+    temp_files = []
+    for temp_file in glob.glob("/sys/class/hwmon/hwmon*/" + 'temp?_label'):
+        debug_print(temp_file, end=": ")
+        with open(temp_file) as f:
+            label = f.read().strip()
+            debug_print(label.ljust(22), prefix="", end=": ")
+        with open(temp_file.replace('label', 'input')) as f:
+            value = f.read().strip()
+            if int(value) > 0:
+                temp_files.append(f"{label}: {int(value) / 1000}°C")
+            debug_print(value, prefix="")
+
 
 class MainFrame(wx.Frame):
     def __init__(self, *args, **kwds):
+        global hwmon_files, pwm_files, temp_files
+
         # begin wxGlade: MainFrame.__init__
         kwds["style"] = kwds.get("style", 0) | wx.CAPTION | wx.CLIP_CHILDREN | wx.CLOSE_BOX | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.SYSTEM_MENU
         
         config_load()
-
-        hwmon_files = []
-        for hwmon_file in sorted(glob.glob("/sys/class/hwmon/hwmon?")):
-            debug_print(hwmon_file, end=": ")
-            with open(hwmon_file + "/name") as f:
-                contents = f.read()
-                hwmon_files.append(os.path.basename(hwmon_file) + "/" + contents + "::")
-                debug_print(contents, prefix="", end=": ")
-                for hwmon_subfile in sorted(glob.glob("/sys/class/hwmon/" + os.path.basename(hwmon_file) + "/*_input")):
-                    with open(hwmon_subfile) as f:
-                        try:
-                            contents_sub = f.read()
-                            if "freq" in hwmon_subfile:
-                                contents_sub = str(int(int(contents_sub) // 1e6)).rjust(4) + " MHz"
-                            if "temp" in hwmon_subfile:
-                                contents_sub = str(int(contents_sub) // 1000).rjust(4) + " °C"
-                            if "fan" in hwmon_subfile and int(contents_sub.strip()) == 0 and contents.strip() == "amdgpu":
-                                contents_sub = contents_sub.rjust(5) + "RPM (not reported)"
-                            elif "fan" in hwmon_subfile:
-                                contents_sub = contents_sub.rjust(5) + "RPM"
-                            if os.path.basename(hwmon_subfile).startswith("in"):
-                                contents_sub = contents_sub.rjust(5) + "mV"
-                        except OSError:
-                            # https://github.com/nicolargo/glances/issues/1203
-                            contents_sub = " N/A °C (WiFi disabled)"
-                        hwmon_files.append(os.path.basename(hwmon_subfile) + ": " + contents_sub)
-                        debug_print(hwmon_subfile + ": " + contents, end="")
-            hwmon_files.append("::")
-        hwmon_files.pop()
-
-        pwm_files = []
-        for pwm_file in sorted(glob.glob("/sys/class/hwmon/hwmon3/" + 'pwm?')):
-            pwm_files.append(os.path.basename(pwm_file).replace('pwm', 'Fan '))
-            with open(pwm_file) as f:
-                contents = f.read()
-                debug_print(pwm_file + ": " + contents, end="")
-
-        self.temp_files = []
-        for temp_file in glob.glob("/sys/class/hwmon/hwmon3/" + 'temp?_label'):
-            debug_print(temp_file, end=": ")
-            with open(temp_file) as f:
-                label = f.read().strip()
-                debug_print(label.ljust(22), prefix="", end=": ")
-            with open(temp_file.replace('label', 'input')) as f:
-                value = f.read().strip()
-                if int(value) > 0:
-                    self.temp_files.append(f"{label}: {int(value) / 1000}°C")
-                debug_print(value, prefix="")
+        read_hwmon()
 
         wx.Frame.__init__(self, *args, **kwds)
+
+        self.timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.OnRefresh)
+        self.timer.Start(1000)  #10 minutes
+
         self.SetSize(wx.DLG_UNIT(self, wx.Size(250, 300)))
         self.SetMinSize(wx.DLG_UNIT(self, wx.Size(250, 300)))
         debug_print(f"WinPos: {WinPos}")
@@ -259,7 +274,7 @@ class MainFrame(wx.Frame):
         sizer_5 = wx.BoxSizer(wx.VERTICAL)
         sizer_11.Add(sizer_5, 0, 0, 0)
 
-        self.panelCurve = FanCurve(self.Fans, wx.ID_ANY)
+        self.panelCurve = FanCurve(self.Fans)
         sizer_5.Add(self.panelCurve, 2, wx.EXPAND, 0)
 
         sizer_5.Add((20, 20), 0, 0, 0)
@@ -274,7 +289,7 @@ class MainFrame(wx.Frame):
         label_4.SetMinSize(wx.DLG_UNIT(label_4, wx.Size(70, 8)))
         grid_sizer_1.Add(label_4, (0, 1), (1, 1), wx.ALIGN_CENTER_VERTICAL, 0)
 
-        self.combo_box_1 = wx.ComboBox(self.Fans, wx.ID_ANY, choices=self.temp_files, style=wx.CB_DROPDOWN)
+        self.combo_box_1 = wx.ComboBox(self.Fans, wx.ID_ANY, choices=temp_files, style=wx.CB_DROPDOWN)
         self.combo_box_1.SetMinSize(wx.DLG_UNIT(self.combo_box_1, wx.Size(100, 14)))
         grid_sizer_1.Add(self.combo_box_1, (0, 2), (1, 1), wx.ALIGN_CENTER_VERTICAL, 0)
 
@@ -369,6 +384,8 @@ class MainFrame(wx.Frame):
         self.Layout()
         #self.Centre()
 
+        self.panelCurve.draw(-1, -1)
+
         self.btnApply.Bind(wx.EVT_BUTTON, self.btnApplyProfile_click)
         self.btnCreate.Bind(wx.EVT_BUTTON, self.btnCreateProfile_click)
         self.btnSave.Bind(wx.EVT_BUTTON, self.btnSaveProfile_click)
@@ -377,29 +394,20 @@ class MainFrame(wx.Frame):
         #self.list_ctrl_1.SetAlternateRowColour(wx.Colour(wx.BLUE))
         #self.list_ctrl_1.EnableAlternateRowColours(True)
 
-        for index, entry in enumerate(hwmon_files):
-            if "::" in entry:
-                item = self.list_ctrl_1.InsertItem(index, entry.split(':')[0])
-                self.list_ctrl_1.SetItemFont(item, wx.Font("Monospace 12 bold"))
-            else:
-                item = self.list_ctrl_1.InsertItem(index, entry.split(':')[0])
-                self.list_ctrl_1.SetItem(item, 1, entry.split(':')[1])
-                self.list_ctrl_1.SetItemFont(item, wx.Font("Monospace 10"))
-
+        #self.listboxProfiles.Clear()
         for index, profile in enumerate(Profiles):
-            self.listboxProfiles.Insert(profile[0], index + 1)
+            self.listboxProfiles.Insert(profile[0], index)
 
         # end wxGlade
 
     def btnApply_click(self, event):  # wxGlade: MainFrame.<event_handler>
+        self.panelCurve.draw(current_rpm=self.ListBoxFans.GetSelection())
+        self.Refresh()
+        #print(pwm_files.index(3).value)
         event.Skip()
 
     def btnReset_click(self, event):  # wxGlade: MainFrame.<event_handler>
-        for i, s in enumerate(self.temp_files):
-            if self.combo_box_1.Value.split(':')[0] in s:
-              current_temp = self.temp_files[i].split(':')[1].split('.')[0]
-
-        self.panelCurve.draw(current_temp)
+        self.OnRefresh(wx.EVT_TIMER)
 
         event.Skip()
 
@@ -452,5 +460,48 @@ class MainFrame(wx.Frame):
         except PermissionError:
             pass
         event.Skip()
+
+    def OnRefresh(self,event):
+        global hwmon_files, pwm_files, temp_files
+        global Profiles
+
+        if self.list_ctrl_1.ItemCount > 0:
+            self.list_ctrl_1.DeleteAllItems()
+        
+        for index, entry in enumerate(hwmon_files):
+            if "::" in entry:
+                item = self.list_ctrl_1.InsertItem(index, entry.split(':')[0])
+                self.list_ctrl_1.SetItemFont(item, wx.Font("Monospace 12 bold"))
+            else:
+                item = self.list_ctrl_1.InsertItem(index, entry.split(':')[0])
+                self.list_ctrl_1.SetItem(item, 1, entry.split(':')[1])
+                self.list_ctrl_1.SetItemFont(item, wx.Font("Monospace 10"))
+
+        read_hwmon()
+        selectedItem = self.combo_box_1.GetCurrentSelection()
+        self.combo_box_1.Clear()
+        self.combo_box_1.AppendItems(temp_files)
+        self.combo_box_1.SetSelection(selectedItem)
+
+        self.Refresh()
+        for i, s in enumerate(temp_files):
+            if self.combo_box_1.Value.split(':')[0] in s:
+              current_temp = temp_files[i].split(':')[1].split('.')[0]
+
+        #print(pwm_files)
+        selectedFan = self.ListBoxFans.GetSelection()
+        debug_print(selectedFan)
+
+        for pwm_file in sorted(glob.glob("/sys/class/hwmon/hwmon*/" + 'pwm' + str(selectedFan))):
+            debug_print(pwm_file)
+            with open(pwm_file) as f:
+                contents = f.read()
+                debug_print(pwm_file + ": " + contents, end="")
+                if True:
+                    current_rpm = round((float(contents) / 255.0) * 100.0, 0)
+                    self.panelCurve.draw(current_temp, current_rpm)
+                    debug_print(f"{current_temp}, {current_rpm}")
+
+        #print(temp_files)
 
 # end of class MainFrame
